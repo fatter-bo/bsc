@@ -433,10 +433,10 @@ func (h *handler) Start(maxPeers int) {
 	h.maxPeers = maxPeers
 
 	// broadcast transactions
-	h.wg.Add(1)
+	//h.wg.Add(1)
 	h.txsCh = make(chan core.NewTxsEvent, txChanSize)
-	h.txsSub = h.txpool.SubscribeNewTxsEvent(h.txsCh)
-	go h.txBroadcastLoop()
+	//h.txsSub = h.txpool.SubscribeNewTxsEvent(h.txsCh)
+	//go h.txBroadcastLoop()
 
 	// announce local pending transactions again
 	h.wg.Add(1)
@@ -456,7 +456,7 @@ func (h *handler) Start(maxPeers int) {
 }
 
 func (h *handler) Stop() {
-	h.txsSub.Unsubscribe()        // quits txBroadcastLoop
+	//h.txsSub.Unsubscribe()        // quits txBroadcastLoop
 	h.reannoTxsSub.Unsubscribe()  // quits txReannounceLoop
 	h.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop
 
@@ -557,9 +557,9 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 		annoCount += len(hashes)
 		peer.AsyncSendPooledTransactionHashes(hashes)
 	}
-	log.Debug("Transaction broadcast", "txs", len(txs),
-		"announce packs", annoPeers, "announced hashes", annoCount,
-		"tx packs", directPeers, "broadcast txs", directCount)
+	//log.Debug("Transaction broadcast", "txs", len(txs),
+	//	"announce packs", annoPeers, "announced hashes", annoCount,
+	//	"tx packs", directPeers, "broadcast txs", directCount)
 }
 
 // ReannounceTransactions will announce a batch of local pending transactions

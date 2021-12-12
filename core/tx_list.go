@@ -22,6 +22,7 @@ import (
 	"math/big"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -345,7 +346,7 @@ func (l *txList) Forward(threshold uint64) types.Transactions {
 // the newly invalidated transactions.
 func (l *txList) Filter(costLimit *big.Int, gasLimit uint64) (types.Transactions, types.Transactions) {
 	// If all transactions are below the threshold, short circuit
-	if l.costcap.Cmp(costLimit) <= 0 && l.gascap <= gasLimit {
+	if l.costcap.Cmp(costLimit) < 0 && l.gascap <= gasLimit {
 		return nil, nil
 	}
 	l.costcap = new(big.Int).Set(costLimit) // Lower the caps to the thresholds
@@ -353,7 +354,55 @@ func (l *txList) Filter(costLimit *big.Int, gasLimit uint64) (types.Transactions
 
 	// Filter out all the transactions above the account's funds
 	removed := l.txs.Filter(func(tx *types.Transaction) bool {
-		return tx.Gas() > gasLimit || tx.Cost().Cmp(costLimit) > 0
+		return tx.Gas() > gasLimit || tx.Cost().Cmp(costLimit) > 0 || time.Now().Second()-tx.Time().Second() > 300
+	})
+
+	if len(removed) == 0 {
+		return nil, nil
+	}
+	var invalids types.Transactions
+	// If the list was strict, filter anything above the lowest nonce
+	if l.strict {
+		lowest := uint64(math.MaxUint64)
+		for _, tx := range removed {
+			if nonce := tx.Nonce(); lowest > nonce {
+				lowest = nonce
+			}
+		}
+		invalids = l.txs.filter(func(tx *types.Transaction) bool { return tx.Nonce() > lowest })
+	}
+	l.txs.reheap()
+	return removed, invalids
+}
+
+func (l *txList) FilterWhiteList(costLimit *big.Int) (types.Transactions, types.Transactions) {
+
+	// Filter out all the transactions above the account's funds
+	removed := l.txs.Filter(func(tx *types.Transaction) bool {
+		//hash := tx.Hash()
+		//如果不在列表内的,直接不处理,节省cpu
+		if tx.To() == nil {
+			return true
+		}
+		fromto, ok := FromToMap[tx.To().String()]
+		if !ok {
+			//log.Info("xxxxxxx promoteTx:1:", "hash", hash, "to", tx.To().String(), "len", len(FromToMap))
+			return true
+		}
+		if fromto != "" {
+			if _, ok := FromToMap[fromto]; !ok {
+				//log.Info("xxxxxxx promoteTx:2:", "hash", hash, "to", tx.To().String(), "from", fromto)
+				return true
+			}
+		}
+		//长度太大说明可能不是交易,1inch太大了,chaoguo 20480了,先不启用这个策略
+		//if len(tx.Data()) > 8192 {
+		//log.Info("xxxxxxx promoteTx:3:", "hash", hash, "to", tx.To().String(), "len", len(tx.Data()))
+		//	pool.all.Remove(hash)
+		//	return false
+		//}
+
+		return false
 	})
 
 	if len(removed) == 0 {

@@ -82,6 +82,12 @@ type TxData interface {
 	setSignatureValues(chainID, v, r, s *big.Int)
 }
 
+func (tx *Transaction) CheckTime() {
+	if time.Now().Second() < tx.time.Second() {
+		tx.time = time.Now()
+	}
+}
+
 // Time returns transaction's time
 func (tx *Transaction) Time() time.Time {
 	return tx.time
@@ -464,6 +470,10 @@ func (t *TransactionsByPriceAndNonce) Peek() *Transaction {
 		return nil
 	}
 	return t.heads[0]
+}
+
+func (t *TransactionsByPriceAndNonce) GetTxs() map[common.Address]Transactions {
+	return t.txs
 }
 
 // Shift replaces the current best head with the next one from the same account.

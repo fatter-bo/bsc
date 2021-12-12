@@ -336,6 +336,10 @@ func (ec *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*
 	return r, err
 }
 
+func (ec *Client) SubscribePendingLogs(ctx context.Context, ch chan<- common.Hash) (*rpc.ClientSubscription, error) {
+	return ec.c.EthSubscribe(ctx, ch, "logs")
+}
+
 func toBlockNumArg(number *big.Int) string {
 	if number == nil {
 		return "latest"

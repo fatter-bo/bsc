@@ -207,6 +207,11 @@ func (st *StateTransition) preCheck() error {
 				st.msg.From().Hex(), msgNonce, stNonce)
 		}
 	}
+	// Make sure the sender is an EOA
+	//if codeHash := st.state.GetCodeHash(st.msg.From()); codeHash != emptyCodeHash && codeHash != (common.Hash{}) {
+	//	return fmt.Errorf("%w: address %v, codehash: %s", ErrSenderNoEOA,
+	//		st.msg.From().Hex(), codeHash)
+	//}
 	return st.buyGas()
 }
 

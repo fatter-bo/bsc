@@ -839,15 +839,15 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 	}
 
 	var coalescedLogs []*types.Log
-	var stopTimer *time.Timer
 	/*
-		delay := w.engine.Delay(w.chain, w.current.header)
-		if delay != nil {
-			stopTimer = time.NewTimer(*delay - w.config.DelayLeftOver)
-			log.Debug("Time left for mining work", "left", (*delay - w.config.DelayLeftOver).String(), "leftover", w.config.DelayLeftOver)
-			defer stopTimer.Stop()
-		}
-		// */
+		var stopTimer *time.Timer
+			delay := w.engine.Delay(w.chain, w.current.header)
+			if delay != nil {
+				stopTimer = time.NewTimer(*delay - w.config.DelayLeftOver)
+				log.Debug("Time left for mining work", "left", (*delay - w.config.DelayLeftOver).String(), "leftover", w.config.DelayLeftOver)
+				defer stopTimer.Stop()
+			}
+			// */
 
 	// initilise bloom processors
 	processorCapacity := 100

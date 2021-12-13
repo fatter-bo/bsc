@@ -840,13 +840,16 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 
 	var coalescedLogs []*types.Log
 	var stopTimer *time.Timer
-	delay := w.engine.Delay(w.chain, w.current.header)
-	if delay != nil {
-		stopTimer = time.NewTimer(*delay - w.config.DelayLeftOver)
-		log.Debug("Time left for mining work", "left", (*delay - w.config.DelayLeftOver).String(), "leftover", w.config.DelayLeftOver)
-		defer stopTimer.Stop()
-	}
+	/*
+		delay := w.engine.Delay(w.chain, w.current.header)
+		if delay != nil {
+			stopTimer = time.NewTimer(*delay - w.config.DelayLeftOver)
+			log.Debug("Time left for mining work", "left", (*delay - w.config.DelayLeftOver).String(), "leftover", w.config.DelayLeftOver)
+			defer stopTimer.Stop()
+		}
+		// */
 
+LOOP:
 	// initilise bloom processors
 	processorCapacity := 100
 	if txs.CurrentSize() < processorCapacity {
@@ -854,7 +857,6 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 	}
 	bloomProcessors := core.NewAsyncReceiptBloomGenerator(processorCapacity)
 
-LOOP:
 	for {
 		// In the following three cases, we will interrupt the execution of the transaction.
 		// (1) new head block event arrival, the interrupt signal is 1

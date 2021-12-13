@@ -849,7 +849,6 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		}
 		// */
 
-LOOP:
 	// initilise bloom processors
 	processorCapacity := 100
 	if txs.CurrentSize() < processorCapacity {
@@ -882,14 +881,6 @@ LOOP:
 		if w.current.gasPool.Gas() < params.TxGas {
 			log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
 			//break
-		}
-		if stopTimer != nil {
-			select {
-			case <-stopTimer.C:
-				log.Info("Not enough time for further transactions", "txs", len(w.current.txs))
-				break LOOP
-			default:
-			}
 		}
 		// Retrieve the next transaction and abort if all done
 		tx := txs.Peek()

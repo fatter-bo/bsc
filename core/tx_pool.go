@@ -288,10 +288,12 @@ func LoadFromTo() {
 	fr, err := os.Open("./fromto.json")
 	if err != nil {
 		fmt.Println("fromto file not find", err)
+		return
 	}
 	rawdata, _ := ioutil.ReadAll(fr)
 	if err != nil {
 		fmt.Println("fromto file read err:", err)
+		return
 	}
 	FromToMap = make(map[string]string)
 	fromtos := []FromTo{}
@@ -628,6 +630,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	// Drop non-local transactions under our own minimal accepted gas price
 	if !local && tx.GasPriceIntCmp(pool.gasPrice) < 0 {
+		log.Info("tx.GasPriceIntCmp ", "pool.gasPrice", pool.gasPrice, "diff", tx.GasPriceIntCmp(pool.gasPrice))
 		return ErrUnderpriced
 	}
 	// Ensure the transaction adheres to nonce ordering

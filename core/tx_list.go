@@ -384,15 +384,17 @@ func (l *txList) FilterWhiteList(costLimit *big.Int) (types.Transactions, types.
 		if tx.To() == nil {
 			return true
 		}
-		fromto, ok := FromToMap[tx.To().String()]
-		if !ok {
-			//log.Info("xxxxxxx promoteTx:1:", "hash", hash, "to", tx.To().String(), "len", len(FromToMap))
-			return true
-		}
-		if fromto != "" {
-			if _, ok := FromToMap[fromto]; !ok {
-				//log.Info("xxxxxxx promoteTx:2:", "hash", hash, "to", tx.To().String(), "from", fromto)
+		if FromToMap != nil {
+			fromto, ok := FromToMap[tx.To().String()]
+			if !ok {
+				//log.Info("xxxxxxx promoteTx:1:", "hash", hash, "to", tx.To().String(), "len", len(FromToMap))
 				return true
+			}
+			if fromto != "" {
+				if _, ok := FromToMap[fromto]; !ok {
+					//log.Info("xxxxxxx promoteTx:2:", "hash", hash, "to", tx.To().String(), "from", fromto)
+					return true
+				}
 			}
 		}
 		//长度太大说明可能不是交易,1inch太大了,chaoguo 20480了,先不启用这个策略

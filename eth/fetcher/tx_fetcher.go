@@ -27,7 +27,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/gopool"
 	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/core"
+	//"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
@@ -276,33 +276,38 @@ func (f *TxFetcher) Enqueue(peer string, txs []*types.Transaction, direct bool) 
 		underpriced int64
 		otherreject int64
 	)
-	errs := f.addTxs(txs)
-	for i, err := range errs {
-		if err != nil {
-			// Track the transaction hash if the price is too low for us.
-			// Avoid re-request this transaction when we receive another
-			// announcement.
-			if err == core.ErrUnderpriced || err == core.ErrReplaceUnderpriced {
-				for f.underpriced.Cardinality() >= maxTxUnderpricedSetSize {
-					f.underpriced.Pop()
+	/*
+		errs := f.addTxs(txs)
+		for i, err := range errs {
+			if err != nil {
+				// Track the transaction hash if the price is too low for us.
+				// Avoid re-request this transaction when we receive another
+				// announcement.
+				if err == core.ErrUnderpriced || err == core.ErrReplaceUnderpriced {
+					for f.underpriced.Cardinality() >= maxTxUnderpricedSetSize {
+						f.underpriced.Pop()
+					}
+					f.underpriced.Add(txs[i].Hash())
 				}
-				f.underpriced.Add(txs[i].Hash())
+				// Track a few interesting failure types
+				switch err {
+				case nil: // Noop, but need to handle to not count these
+
+				case core.ErrAlreadyKnown:
+					duplicate++
+
+				case core.ErrUnderpriced, core.ErrReplaceUnderpriced:
+					underpriced++
+
+				default:
+					otherreject++
+				}
 			}
-			// Track a few interesting failure types
-			switch err {
-			case nil: // Noop, but need to handle to not count these
-
-			case core.ErrAlreadyKnown:
-				duplicate++
-
-			case core.ErrUnderpriced, core.ErrReplaceUnderpriced:
-				underpriced++
-
-			default:
-				otherreject++
-			}
+			added = append(added, txs[i].Hash())
 		}
-		added = append(added, txs[i].Hash())
+		// */
+	for _, tx := range txs {
+		added = append(added, tx.Hash())
 	}
 	if direct {
 		txReplyKnownMeter.Mark(duplicate)
